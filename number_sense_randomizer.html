@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Number Sense Randomizer</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; background: #f7f7f7;
+    font-family: Arial, sans-serif; color: #222;
+  }
+  #card {
+    width: min(900px, 92vw); min-height: 570px; background: white;
+    border-radius: 28px; box-shadow: 0 8px 30px rgba(0,0,0,.12);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 35px;
+  }
+  #representation { font-size: 32px; font-weight: 700; margin-bottom: 20px; }
+  #visual { min-height: 330px; display: flex; align-items: center; justify-content: center; }
+  button {
+    margin-top: 20px; padding: 18px 55px; border: 0; border-radius: 16px;
+    background: #222; color: white; font-size: 28px; font-weight: 700; cursor: pointer;
+  }
+  button:hover { transform: scale(1.03); }
+  .dice { display:grid; grid-template-columns:repeat(3,70px); grid-template-rows:repeat(3,70px); gap:8px; }
+  .pip { width:52px; height:52px; background:#222; border-radius:50%; justify-self:center; align-self:center; }
+  .ten { display:grid; grid-template-columns:repeat(5,80px); gap:12px; }
+  .cell { width:80px; height:80px; border:4px solid #222; border-radius:10px; display:flex; align-items:center; justify-content:center; }
+  .dot { width:46px; height:46px; border-radius:50%; background:#222; }
+  .dots { display:grid; grid-template-columns:repeat(5,65px); gap:18px; max-width:390px; justify-content:center; }
+  .fingers { font-size:150px; line-height:1; }
+  .numeral { font-size:190px; font-weight:800; }
+  .tally { font-size:90px; letter-spacing:8px; font-weight:700; }
+  .hint { position:fixed; top:14px; right:18px; font-size:14px; color:#777; }
+  @media(max-width:600px){
+    #card{min-height:500px;padding:20px}.ten{grid-template-columns:repeat(5,48px);gap:6px}
+    .cell{width:48px;height:60px}.dots{grid-template-columns:repeat(5,42px);gap:10px}
+    .dot{width:32px;height:32px}.dice{grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px)}
+    .pip{width:34px;height:34px}.fingers{font-size:110px}.numeral{font-size:140px}.tally{font-size:60px}
+  }
+</style>
+</head>
+<body>
+<div class="hint">Press SPACE for next</div>
+<div id="card">
+  <div id="representation">NUMBER SENSE</div>
+  <div id="visual"></div>
+  <button onclick="next()">NEXT</button>
+</div>
+
+<script>
+const reps = ["fingers","ten","dice","dots","tally","numeral"];
+let last = null;
+
+function randomNumber() {
+  let n;
+  do { n = Math.floor(Math.random()*10)+1; } while(n === last && Math.random() < .6);
+  last = n; return n;
+}
+
+function diceHTML(n) {
+  const positions = {
+    1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8],
+    5:[0,2,4,6,8], 6:[0,2,3,5,6,8]
+  };
+  return `<div class="dice">${Array.from({length:9},(_,i)=>
+    `<div class="pip" style="${(positions[n]||[]).includes(i)?'':'visibility:hidden'}"></div>`).join('')}</div>`;
+}
+
+function tenHTML(n) {
+  return `<div class="ten">${Array.from({length:10},(_,i)=>
+    `<div class="cell">${i<n?'<div class="dot"></div>':''}</div>`).join('')}</div>`;
+}
+
+function dotsHTML(n) {
+  return `<div class="dots">${Array.from({length:n},()=>'<div class="dot"></div>').join('')}</div>`;
+}
+
+function fingersHTML(n) {
+  // Uses familiar hand emojis; 6-10 shown as two-hand combinations.
+  const map = {1:"☝️",2:"✌️",3:"🤟",4:"🖐️",5:"🖐️",6:"🖐️☝️",7:"🖐️✌️",8:"🖐️🤟",9:"🖐️🖐️☝️",10:"🖐️🖐️"};
+  return `<div class="fingers">${map[n]}</div>`;
+}
+
+function tallyHTML(n) {
+  let groups = Math.floor(n/5), rem = n%5;
+  let s = "|||||".repeat(groups) + "|".repeat(rem);
+  return `<div class="tally">${s || "0"}</div>`;
+}
+
+function next() {
+  const n = randomNumber();
+  const rep = reps[Math.floor(Math.random()*reps.length)];
+  const names = {fingers:"FINGERS",ten:"TEN FRAME",dice:"DICE",dots:"DOTS",tally:"TALLY MARKS",numeral:"NUMBER"};
+  document.getElementById("representation").textContent = names[rep];
+  const v = document.getElementById("visual");
+  if(rep==="fingers") v.innerHTML=fingersHTML(n);
+  if(rep==="ten") v.innerHTML=tenHTML(n);
+  if(rep==="dice") v.innerHTML=diceHTML(Math.min(n,6));
+  if(rep==="dots") v.innerHTML=dotsHTML(n);
+  if(rep==="tally") v.innerHTML=tallyHTML(n);
+  if(rep==="numeral") v.innerHTML=`<div class="numeral">${n}</div>`;
+}
+
+document.addEventListener("keydown", e => { if(e.code==="Space") { e.preventDefault(); next(); }});
+next();
+</script>
+</body>
+</html>
